@@ -9,8 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Qiskit
-from qiskit import QuantumCircuit, Aer, transpile
-from qiskit.providers.aer.noise import NoiseModel, thermal_relaxation_error
+from qiskit import QuantumCircuit, transpile
+from qiskit_aer import Aer
+from qiskit_aer.noise import NoiseModel, thermal_relaxation_error
 
 # For IRIS dataset, train/test
 from sklearn.datasets import load_iris
@@ -84,7 +85,7 @@ def build_distance_circuit(f1A, f2A, f1B, f2B):
     if normB < 1e-9:
         f1nB, f2nB = 1.0, 0.0
     else:
-        f1nB, f2nB = f1B / normB, f2B / normB  # <-- FIXED the syntax here!
+        f1nB, f2nB = f1B / normB, f2B / normB
 
     qc.initialize([f1nB, f2nB], 1)
 
