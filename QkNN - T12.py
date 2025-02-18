@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 
 # Define the number of repetitions
-n = 5  # Change this variable to modify the number of runs
+n = 1  # Change this variable to modify the number of runs
 
 # Load the Iris dataset
 iris = load_iris()
@@ -92,7 +92,7 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
         backend = AerSimulator()
 
     # Define Quantum Kernel with the specified backend
-    quantum_kernel = FidelityQuantumKernel(feature_map=feature_map, quantum_instance=backend)
+    quantum_kernel = FidelityQuantumKernel(feature_map=feature_map)
 
     # Compute Kernel Matrices
     train_kernel_start_time = time.time()
