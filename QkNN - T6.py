@@ -21,7 +21,7 @@ from qiskit.circuit.library import ZZFeatureMap
 # and a "Sampler" that references our AerSimulator.
 # (Ensure qiskit_machine_learning >= 0.5 and qiskit >= 0.22 for these imports.)
 from qiskit.primitives import Sampler
-from qiskit_machine_learning.algorithms.state_fidelities import ComputeUncompute
+from qiskit_machine_learning.kernels.algorithms import ComputeUncompute
 from qiskit_machine_learning.kernels import FidelityQuantumKernel
 
 # scikit-learn imports
