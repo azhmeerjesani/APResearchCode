@@ -67,7 +67,7 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
         backend = AerSimulator()
 
     # Define Quantum Kernel with the specified backend
-    quantum_kernel = FidelityQuantumKernel(feature_map=feature_map, quantum_instance=backend)
+    quantum_kernel = FidelityQuantumKernel(feature_map=feature_map)
 
     # Compute Kernel Matrices
     train_kernel_start_time = time.time()
