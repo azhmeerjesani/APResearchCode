@@ -1,3 +1,33 @@
+# =============================================================================
+# QUANTUM k-NN EXPERIMENTATION SCRIPT WITH MULTIPLE NOISE MODELS
+# =============================================================================
+# This script demonstrates a quantum k-NN algorithm using Qiskit's FidelityQuantumKernel
+# on the Iris dataset. It simulates various quantum noise environments by applying
+# different noise models to the AerSimulator backend.
+#
+# The following noise models are supported:
+#   1. "Noiseless"            : Ideal simulation with no noise.
+#   2. "Noisy"                : Single-qubit depolarizing error (1% per gate).
+#   3. "TwoQubit"             : Two-qubit depolarizing error (3% per gate on CX).
+#   4. "ZRotation"            : Single-qubit coherent Z-rotation error (π/30 rotation).
+#   5. "TwoQubitXRotation"    : Two-qubit coherent X-rotation error (π/10 rotation).
+#   6. "T1Relaxation"         : Thermal relaxation noise with T1 randomly between 50-100 µs.
+#   7. "T2Dephasing"          : Thermal relaxation noise simulating dephasing with T2 between 30-80 µs (with T1 very high).
+#   8. "MeasurementError"     : Single-qubit measurement error with probability between 1%-3%.
+#   9. "Combined"             : A combination of all the above noise models.
+#
+# The script:
+#   - Loads and normalizes the Iris dataset.
+#   - Splits the data into training and testing sets.
+#   - Constructs a ZZFeatureMap based on the number of features.
+#   - Applies the selected noise model to an AerSimulator backend.
+#   - Computes quantum kernel matrices for training and testing data.
+#   - Runs a quantum k-NN classifier for a range of k values.
+#   - Measures classification accuracy and records detailed timing information.
+#   - Saves the results for each run to a CSV file with the noise type indicated.
+#
+# =============================================================================
+
 import numpy as np
 import pandas as pd
 from qiskit_aer import Aer, AerSimulator  # For simulator with and without noise
@@ -12,16 +42,35 @@ from scipy.stats import mode
 import time
 from datetime import datetime
 
-# Define the number of repetitions
+# =============================================================================
+# Set the number of repetitions for each experiment.
+# =============================================================================
 n = 1  # Change this variable to modify the number of runs
 
-# Load the Iris dataset
+# =============================================================================
+# Load the Iris dataset into pandas DataFrame and Series.
+# =============================================================================
 iris = load_iris()
 features = pd.DataFrame(iris.data, columns=iris.feature_names)
 labels = pd.Series(iris.target, name="label")
 
 
-# Quantum k-NN function
+# =============================================================================
+# FUNCTION: quantum_knn
+# Description:
+#   Implements the quantum k-NN classification algorithm. For each test sample,
+#   it computes the distance (1 - kernel value) to all training samples,
+#   selects the k nearest neighbors, and determines the most common label.
+#
+# Parameters:
+#   - test_kernel_matrix: Precomputed kernel matrix for test samples.
+#   - train_kernel_matrix: Precomputed kernel matrix for training samples.
+#   - y_train: Training labels (as a pandas Series).
+#   - k: Number of nearest neighbors to consider (default is 3).
+#
+# Returns:
+#   - A NumPy array of predicted labels for the test samples.
+# =============================================================================
 def quantum_knn(test_kernel_matrix, train_kernel_matrix, y_train, k=3):
     predictions = []
     for i in range(test_kernel_matrix.shape[0]):
@@ -33,8 +82,27 @@ def quantum_knn(test_kernel_matrix, train_kernel_matrix, y_train, k=3):
     return np.array(predictions)
 
 
-# Function to perform a single run and return the results for all k values.
-# The `noise_type` parameter controls which noise model to apply.
+# =============================================================================
+# FUNCTION: run_qknn_experiment
+# Description:
+#   Runs a single experiment of the quantum k-NN algorithm on the Iris dataset,
+#   applying a specified noise model. It performs the following steps:
+#
+#     1. Data normalization.
+#     2. Splitting data into training and testing sets.
+#     3. Constructing a quantum feature map (ZZFeatureMap).
+#     4. Setting up the AerSimulator backend with the chosen noise model.
+#     5. Computing the quantum kernel matrices for training and testing data.
+#     6. Running the quantum k-NN classification for varying values of k.
+#     7. Recording timing and accuracy metrics.
+#
+# Parameters:
+#   - run_index: Identifier for the current run.
+#   - noise_type: String specifying the noise model to use.
+#
+# Returns:
+#   - results_list: A list of dictionaries containing timing, accuracy, noise type, and other info.
+# =============================================================================
 def run_qknn_experiment(run_index, noise_type="Noiseless"):
     # Record start time and normalize data
     start_time = time.time()
@@ -47,25 +115,35 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
         normalized_features, labels, test_size=0.2, random_state=42
     )
 
-    # Define Quantum Feature Map
+    # Define Quantum Feature Map (ZZFeatureMap with linear entanglement)
     num_features = X_train.shape[1]
     feature_map = ZZFeatureMap(feature_dimension=num_features, reps=2, entanglement="linear")
 
-    # Set up the simulator backend based on the noise type.
+    # =============================================================================
+    # Noise Model Selection:
+    #   Depending on the 'noise_type' parameter, a specific noise model is applied to
+    #   the AerSimulator backend. Each branch below sets up a different noise model:
+    #
+    #   - "Noisy": Single-qubit depolarizing error (1% error rate on u1, u2, u3).
+    #   - "TwoQubit": Two-qubit depolarizing error (3% error rate on CX gate).
+    #   - "ZRotation": Single-qubit coherent Z-rotation error (π/30 rotation) on u1, u2, u3.
+    #   - "TwoQubitXRotation": Two-qubit coherent X-rotation error (π/10 rotation) on CX.
+    #   - "T1Relaxation": Thermal relaxation noise with T1 between 50-100 µs (T2 = T1).
+    #   - "T2Dephasing": Thermal relaxation noise with T2 between 30-80 µs and T1 very high.
+    #   - "MeasurementError": Readout error with probability between 1%-3%.
+    #   - "Combined": All of the above noise models applied simultaneously.
+    # =============================================================================
     if noise_type == "Noisy":
-        # Single-qubit depolarizing error: 1% per gate
         noise_model = NoiseModel()
         error = depolarizing_error(0.01, 1)
         noise_model.add_all_qubit_quantum_error(error, ["u1", "u2", "u3"])
         backend = AerSimulator(noise_model=noise_model)
     elif noise_type == "TwoQubit":
-        # Two-qubit depolarizing error: 3% per gate
         noise_model = NoiseModel()
         error = depolarizing_error(0.03, 2)
         noise_model.add_all_qubit_quantum_error(error, ["cx"])
         backend = AerSimulator(noise_model=noise_model)
     elif noise_type == "ZRotation":
-        # Single-qubit coherent Z-rotation error of π/30 applied to all single-qubit gates
         theta = np.pi / 30
         U = np.array([[np.exp(-1j * theta / 2), 0],
                       [0, np.exp(1j * theta / 2)]])
@@ -74,7 +152,6 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
         noise_model.add_all_qubit_quantum_error(error, ["u1", "u2", "u3"])
         backend = AerSimulator(noise_model=noise_model)
     elif noise_type == "TwoQubitXRotation":
-        # Two-qubit coherent X-rotation error of π/10 applied to all two-qubit gates (cx)
         theta = np.pi / 10
         Rx = np.array([[np.cos(theta/2), -1j * np.sin(theta/2)],
                        [-1j * np.sin(theta/2), np.cos(theta/2)]])
@@ -84,24 +161,21 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
         noise_model.add_all_qubit_quantum_error(error, ["cx"])
         backend = AerSimulator(noise_model=noise_model)
     elif noise_type == "T1Relaxation":
-        # T1 relaxation noise with T1 randomly chosen between 50-100 µs (in ns)
         noise_model = NoiseModel()
         t1 = np.random.uniform(50000, 100000)  # T1 in ns (50-100 µs)
-        t2 = t1  # For simplicity, set T2 equal to T1
-        gate_time_1q = 50    # Typical single-qubit gate time in ns
+        t2 = t1  # For simplicity, T2 is set equal to T1
+        gate_time_1q = 50    # Typical single-qubit gate time (ns)
         error_1q = thermal_relaxation_error(t1, t2, gate_time_1q)
         noise_model.add_all_qubit_quantum_error(error_1q, ["u1", "u2", "u3"])
-        gate_time_2q = 300   # Typical two-qubit gate time in ns
+        gate_time_2q = 300   # Typical two-qubit gate time (ns)
         error_2q = thermal_relaxation_error(t1, t2, gate_time_2q)
         error_2q = error_2q.tensor(error_2q)
         noise_model.add_all_qubit_quantum_error(error_2q, ["cx"])
         backend = AerSimulator(noise_model=noise_model)
     elif noise_type == "T2Dephasing":
-        # T2 dephasing noise with T2 randomly chosen between 30-80 µs (in ns)
-        # To simulate dephasing only, set T1 very high.
         noise_model = NoiseModel()
         t2 = np.random.uniform(30000, 80000)  # T2 in ns (30-80 µs)
-        t1 = 1e9  # Set T1 very high so that amplitude damping is negligible.
+        t1 = 1e9  # T1 is set very high to minimize amplitude damping
         gate_time_1q = 50
         error_1q = thermal_relaxation_error(t1, t2, gate_time_1q)
         noise_model.add_all_qubit_quantum_error(error_1q, ["u1", "u2", "u3"])
@@ -111,7 +185,6 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
         noise_model.add_all_qubit_quantum_error(error_2q, ["cx"])
         backend = AerSimulator(noise_model=noise_model)
     elif noise_type == "MeasurementError":
-        # Single-qubit measurement error with error probability randomly chosen between 1%-3%
         noise_model = NoiseModel()
         error_prob = np.random.uniform(0.01, 0.03)
         readout_error = ReadoutError([[1 - error_prob, error_prob],
@@ -119,7 +192,6 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
         noise_model.add_all_qubit_readout_error(readout_error)
         backend = AerSimulator(noise_model=noise_model)
     elif noise_type == "Combined":
-        # All previous types of noise are applied together.
         noise_model = NoiseModel()
         # Single-qubit depolarizing error (1%)
         error_1q_dep = depolarizing_error(0.01, 1)
@@ -165,13 +237,14 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
         noise_model.add_all_qubit_readout_error(readout_error)
         backend = AerSimulator(noise_model=noise_model)
     else:
-        # No noise applied.
         backend = AerSimulator()
 
-    # Define Quantum Kernel with the specified backend
+    # =============================================================================
+    # Kernel Matrix Computation:
+    #   The FidelityQuantumKernel is used to compute the quantum kernel matrices for
+    #   both the training data (x_vec) and the testing data (x_vec and y_vec).
+    # =============================================================================
     quantum_kernel = FidelityQuantumKernel(feature_map=feature_map)
-
-    # Compute Kernel Matrices
     train_kernel_start_time = time.time()
     train_kernel_matrix = quantum_kernel.evaluate(x_vec=X_train)
     train_kernel_end_time = time.time()
@@ -180,7 +253,12 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
     test_kernel_matrix = quantum_kernel.evaluate(x_vec=X_test, y_vec=X_train)
     test_kernel_end_time = time.time()
 
-    # Create a list to hold results for each k value
+    # =============================================================================
+    # Quantum k-NN Classification:
+    #   For each value of k from 1 up to the number of test samples, the quantum k-NN
+    #   classifier is applied to predict the test labels. The accuracy is then computed
+    #   against the true labels.
+    # =============================================================================
     results_list = []
     for k in range(1, X_test.shape[0] + 1):
         qknn_start_time = time.time()
@@ -204,7 +282,12 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
     return results_list
 
 
-# Run experiments for all nine noise conditions
+# =============================================================================
+# EXPERIMENT EXECUTION:
+#   The following loops execute the quantum k-NN experiment for each noise condition.
+#   For each condition, the experiment is run 'n' times, and the results are saved
+#   in CSV files with filenames indicating the noise type.
+# =============================================================================
 
 # 1. Noiseless runs
 for i in range(1, n + 1):
