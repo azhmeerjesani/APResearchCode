@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 
 # Define the number of repetitions
-n = 5  # Change this variable to modify the number of runs
+n = 1  # Change this variable to modify the number of runs
 
 # Load the Iris dataset
 iris = load_iris()
