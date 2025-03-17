@@ -45,7 +45,7 @@ from datetime import datetime
 # =============================================================================
 # Set the number of repetitions for each experiment.
 # =============================================================================
-n = 20  # Change this variable to modify the number of runs
+n = 50  # Change this variable to modify the number of runs
 
 # =============================================================================
 # Load the Iris dataset into pandas DataFrame and Series.
