@@ -112,7 +112,7 @@ def run_qknn_experiment(run_index, noise_type="Noiseless"):
 
     # Split dataset into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(
-        normalized_features, labels, test_size=0.2, random_state=42
+        normalized_features, labels, test_size=0.2
     )
 
     # Define Quantum Feature Map (ZZFeatureMap with linear entanglement)
