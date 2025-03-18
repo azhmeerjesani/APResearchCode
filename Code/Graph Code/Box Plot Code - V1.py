@@ -53,19 +53,24 @@ def generate_box_plots_1200_dpi():
             df_list.append(pd.read_csv(csv_file))
         combined_df = pd.concat(df_list, ignore_index=True)
 
+        # Convert k to integer to ensure proper sorting
+        combined_df["k"] = combined_df["k"].astype(int)
+        combined_df = combined_df.sort_values(by="k")  # Sort k-values explicitly
+
         # Create a figure with increased spacing for better readability
         plt.figure(figsize=(12, 6), dpi=1200)  # Increase figure size for clarity
 
         # Box plot: x-axis is 'k', y-axis is 'Accuracy'
         ax = sns.boxplot(x="k", y="Accuracy", data=combined_df, palette=palette, linewidth=1.5)
 
+        # Ensure k-values are in correct order
+        ax.set_xticks(sorted(combined_df["k"].unique()))
+        ax.set_xticklabels(sorted(combined_df["k"].unique()), rotation=45)
+
         # Set title and labels
         plt.title(f"Accuracy vs. k for Noise: {noise}", fontsize=14, fontweight="bold")
         plt.xlabel("k value", fontsize=12)
         plt.ylabel("Accuracy", fontsize=12)
-
-        # Rotate x-ticks slightly for better readability
-        plt.xticks(rotation=45)
 
         # Save the plot as a high-resolution PNG
         output_filename = os.path.join(csv_folder, f"BoxPlot_{noise}_Accuracy_vs_k.png")
@@ -83,7 +88,7 @@ def generate_box_plots_1200_dpi():
             stats_file.write("="*50 + "\n\n")
 
             # Group data by k value and compute stats
-            for k_value, group in combined_df.groupby("k"):
+            for k_value, group in combined_df.groupby("k", sort=True):  # Ensures sorted k-values
                 q1 = group["Accuracy"].quantile(0.25)  # 1st quartile
                 q2 = group["Accuracy"].median()        # Median (Q2)
                 q3 = group["Accuracy"].quantile(0.75)  # 3rd quartile
@@ -104,7 +109,6 @@ def generate_box_plots_1200_dpi():
                 stats_file.write("-" * 50 + "\n")
 
         print(f"Summary statistics saved for noise type '{noise}' at: {summary_filename}")
-
 
 if __name__ == "__main__":
     generate_box_plots_1200_dpi()
