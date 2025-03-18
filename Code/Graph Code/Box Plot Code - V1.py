@@ -19,7 +19,7 @@ def generate_box_plots_1200_dpi():
     # Noise types that appear in the CSV filenames
     noise_types = [
         "Noiseless",
-        "Noisy",
+        "SingleQubit",
         "TwoQubit",
         "ZRotation",
         "TwoQubitXRotation",
@@ -35,7 +35,12 @@ def generate_box_plots_1200_dpi():
     # Loop over each noise type and create a box plot
     for noise in noise_types:
         # Use a glob pattern to find all CSV files that match this noise type
-        pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{noise}_*.csv")
+
+        if (noise == "SingleQubit"):
+            pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_Noisy_*.csv")
+        else:
+            pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{noise}_*.csv")
+
         matching_files = glob.glob(pattern)
 
         # If no files found for a noise type, just skip
