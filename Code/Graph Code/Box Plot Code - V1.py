@@ -9,9 +9,6 @@ def generate_box_plots_1200_dpi():
     This script creates a separate 1200 DPI box plot for each noise type, showing
     Accuracy vs. k-value, and outputs summary statistics for each plot to a text file.
 
-    All CSV files are assumed to reside in:
-      C:\\Users\\azhme\\OneDrive - Clear Creek ISD\\Files\\School\\11th Grade\\AP Capstone Research\\Parts Of Research Paper\\APResearchCode\\CSV Outputs
-
     Each box plot will be spaced out for readability, include an appealing color scheme,
     and save summary statistics (mean, median, quartiles, range) to a .txt file.
     """
@@ -34,7 +31,6 @@ def generate_box_plots_1200_dpi():
 
     # Set Seaborn style for more visually appealing plots
     sns.set(style="whitegrid")
-    palette = sns.color_palette("coolwarm", len(noise_types))  # Cool-to-warm color palette
 
     # Loop over each noise type and create a box plot
     for noise in noise_types:
@@ -58,12 +54,18 @@ def generate_box_plots_1200_dpi():
         combined_df = combined_df.sort_values(by="k")  # Sort k-values explicitly
 
         # Create a figure with increased spacing for better readability
-        plt.figure(figsize=(12, 6), dpi=1200)  # Increase figure size for clarity
+        plt.figure(figsize=(12, 6), dpi=1200)
 
-        # Box plot: x-axis is 'k', y-axis is 'Accuracy'
-        ax = sns.boxplot(x="k", y="Accuracy", data=combined_df, palette=palette, linewidth=1.5)
+        # Box plot with better color handling and explicit hue assignment
+        ax = sns.boxplot(
+            x="k", y="Accuracy", data=combined_df,
+            hue="k",  # Ensures proper differentiation of k-values
+            palette=sns.color_palette("viridis", as_cmap=True),  # Continuous colormap
+            linewidth=1.5,
+            legend=False  # Avoids redundant legend
+        )
 
-        # Ensure k-values are in correct order
+        # Ensure k-values are in correct order on the x-axis
         ax.set_xticks(sorted(combined_df["k"].unique()))
         ax.set_xticklabels(sorted(combined_df["k"].unique()), rotation=45)
 
@@ -72,8 +74,10 @@ def generate_box_plots_1200_dpi():
         plt.xlabel("k value", fontsize=12)
         plt.ylabel("Accuracy", fontsize=12)
 
+        # Ensure filenames are valid
+        output_filename = os.path.join(csv_folder, f"BoxPlot_{noise.replace(' ', '_')}_Accuracy_vs_k.png")
+
         # Save the plot as a high-resolution PNG
-        output_filename = os.path.join(csv_folder, f"BoxPlot_{noise}_Accuracy_vs_k.png")
         plt.savefig(output_filename, bbox_inches="tight")
         plt.close()
 
@@ -82,7 +86,7 @@ def generate_box_plots_1200_dpi():
         # ============================
         # Generate Summary Statistics
         # ============================
-        summary_filename = os.path.join(csv_folder, f"BoxPlot_{noise}_Summary_Stats.txt")
+        summary_filename = os.path.join(csv_folder, f"BoxPlot_{noise.replace(' ', '_')}_Summary_Stats.txt")
         with open(summary_filename, "w") as stats_file:
             stats_file.write(f"Summary Statistics for {noise} Noise Box Plot\n")
             stats_file.write("="*50 + "\n\n")
