@@ -15,7 +15,7 @@ def generate_line_chart_accuracy_vs_k():
     """
 
     # Absolute folder path containing all CSV outputs
-    csv_folder = r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\CSV Outputs"
+    csv_folder = r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\Outputs\CSV Outputs"
 
     # List of noise types to process
     noise_types = [

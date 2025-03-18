@@ -22,7 +22,7 @@ def generate_line_charts_noiseless_vs_noise():
     """
 
     # Absolute folder path containing all CSV outputs (raw string to prevent unicode escape issues)
-    csv_folder = r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\CSV Outputs"
+    csv_folder = r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\Outputs\CSV Outputs"
 
     # Define control noise type and other noise types to compare against
     control_noise = "Noiseless"

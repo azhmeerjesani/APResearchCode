@@ -17,7 +17,7 @@ def generate_violin_plots_1200_dpi():
     """
 
     # Absolute path to the folder containing all CSV outputs
-    csv_folder = r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\CSV Outputs"
+    csv_folder = r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\Outputs\CSV Outputs"
 
     # Noise types that appear in the CSV filenames
     noise_types = [
