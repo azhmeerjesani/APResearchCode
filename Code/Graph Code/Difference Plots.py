@@ -21,7 +21,7 @@ def generate_difference_plots_1200_dpi():
     # Define control noise type and noise types to compare
     control_noise = "Noiseless"
     noise_types = [
-        "Noisy",
+        "SingleQubit",
         "TwoQubit",
         "ZRotation",
         "TwoQubitXRotation",
@@ -51,7 +51,11 @@ def generate_difference_plots_1200_dpi():
 
     # Loop over each noise type and create a difference plot comparing to control
     for i, noise in enumerate(noise_types):
-        pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{noise}_*.csv")
+        if (noise == "SingleQubit"):
+            pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_Noisy_*.csv")
+        else:
+            pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{noise}_*.csv")
+
         test_files = glob.glob(pattern)
         if not test_files:
             print(f"No CSV files found for noise type: {noise}")

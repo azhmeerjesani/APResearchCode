@@ -20,7 +20,7 @@ def generate_line_chart_accuracy_vs_k():
     # List of noise types to process
     noise_types = [
         "Noiseless",
-        "Noisy",
+        "SingleQubit",
         "TwoQubit",
         "ZRotation",
         "TwoQubitXRotation",
@@ -38,7 +38,11 @@ def generate_line_chart_accuracy_vs_k():
 
     # Loop through each noise type and plot the line
     for i, noise in enumerate(noise_types):
-        pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{noise}_*.csv")
+        if (noise == "SingleQubit"):
+            pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_Noisy_*.csv")
+        else:
+            pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{noise}_*.csv")
+
         matching_files = glob.glob(pattern)
         if not matching_files:
             print(f"No CSV files found for noise type: {noise}")

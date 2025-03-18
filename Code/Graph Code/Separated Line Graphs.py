@@ -27,7 +27,7 @@ def generate_line_charts_noiseless_vs_noise():
     # Define control noise type and other noise types to compare against
     control_noise = "Noiseless"
     noise_types = [
-        "Noisy",
+        "SingleQubit",
         "TwoQubit",
         "ZRotation",
         "TwoQubitXRotation",
@@ -63,7 +63,12 @@ def generate_line_charts_noiseless_vs_noise():
 
     # Loop through each non-control noise type
     for noise in noise_types:
-        pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{noise}_*.csv")
+        if (noise == "SingleQubit"):
+            pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_Noisy_*.csv")
+        else:
+            pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{noise}_*.csv")
+
+
         test_files = glob.glob(pattern)
         if not test_files:
             print(f"No CSV files found for noise type: {noise}")
