@@ -6,15 +6,22 @@ import seaborn as sns
 
 
 def generate_line_charts_noiseless_vs_noise():
-    """
+    r"""
     This script generates high-resolution (1200 DPI) line charts comparing the control
     (Noiseless) versus each other noise type. For each comparison, it plots the average
     accuracy (with ± standard deviation bands) versus k.
 
     The CSV files are assumed to reside in:
-    C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\CSV Outputs
+    r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\CSV Outputs"
+
+    Two lines (with error bands) are plotted on each chart:
+      - One for the control ("Noiseless")
+      - One for the specified noise type
+
+    Each line is assigned a distinct color and a legend is included.
     """
-    # Absolute folder path containing all CSV outputs
+
+    # Absolute folder path containing all CSV outputs (raw string to prevent unicode escape issues)
     csv_folder = r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\CSV Outputs"
 
     # Define control noise type and other noise types to compare against
@@ -50,7 +57,7 @@ def generate_line_charts_noiseless_vs_noise():
     # Set a consistent Seaborn style for all plots
     sns.set(style="whitegrid")
 
-    # Define fixed colors for control and comparison line (using Tab10 palette)
+    # Define fixed colors for control and comparison lines (using Tab10 palette)
     palette = sns.color_palette("tab10", n_colors=10)
     control_color = palette[0]  # e.g., blue for control
 
@@ -76,7 +83,8 @@ def generate_line_charts_noiseless_vs_noise():
         plt.figure(figsize=(12, 8), dpi=1200)
 
         # Plot the control line (Noiseless)
-        plt.plot(k_control, control_mean, marker="o", label=f"{control_noise}", color=control_color, linewidth=2)
+        plt.plot(k_control, control_mean, marker="o", label=f"{control_noise}",
+                 color=control_color, linewidth=2)
         plt.fill_between(k_control,
                          [m - s for m, s in zip(control_mean, control_std)],
                          [m + s for m, s in zip(control_mean, control_std)],
@@ -84,7 +92,8 @@ def generate_line_charts_noiseless_vs_noise():
 
         # Choose a different color for the noise type (second color from palette)
         noise_color = palette[1]
-        plt.plot(k_test, test_mean, marker="o", label=f"{noise}", color=noise_color, linewidth=2)
+        plt.plot(k_test, test_mean, marker="o", label=f"{noise}",
+                 color=noise_color, linewidth=2)
         plt.fill_between(k_test,
                          [m - s for m, s in zip(test_mean, test_std)],
                          [m + s for m, s in zip(test_mean, test_std)],
@@ -94,7 +103,9 @@ def generate_line_charts_noiseless_vs_noise():
         plt.title(f"Comparison: {control_noise} vs. {noise} - Accuracy vs. k", fontsize=16, fontweight="bold")
         plt.xlabel("k value", fontsize=14)
         plt.ylabel("Average Accuracy", fontsize=14)
-        plt.xticks(sorted(set(control_df["k"].unique()).union(set(test_df["k"].unique()))), rotation=45)
+        # Set xticks to union of available k-values from control and test data
+        combined_k = sorted(set(control_df["k"].unique()).union(set(test_df["k"].unique())))
+        plt.xticks(combined_k, rotation=45)
         plt.legend(title="Noise Type", fontsize=12)
         plt.grid(True)
 
