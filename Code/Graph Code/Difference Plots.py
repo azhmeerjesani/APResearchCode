@@ -12,9 +12,10 @@ def generate_difference_plots_1200_dpi():
     For each noise type, the absolute difference between the "Noiseless" (control) and the noise
     type's mean accuracy is computed for each k and plotted as a single line.
 
-    The CSV files are assumed to reside in:
-    r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\CSV Outputs"
+    Additionally, for each generated plot, a text file is also created, containing a list of
+    (k, absolute_difference) pairs to facilitate easy inspection of numerical data.
     """
+
     # Absolute folder path containing all CSV outputs
     csv_folder = r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\Outputs\CSV Outputs"
 
@@ -31,12 +32,13 @@ def generate_difference_plots_1200_dpi():
         "Combined"
     ]
 
-    # Load control (Noiseless) data
+    # --- LOAD CONTROL (Noiseless) DATA ---
     control_pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{control_noise}_*.csv")
     control_files = glob.glob(control_pattern)
     if not control_files:
         print(f"No CSV files found for control noise type: {control_noise}")
         return
+
     control_dfs = [pd.read_csv(file) for file in control_files]
     control_df = pd.concat(control_dfs, ignore_index=True)
     control_df["k"] = control_df["k"].astype(int)
@@ -49,9 +51,9 @@ def generate_difference_plots_1200_dpi():
     sns.set(style="whitegrid")
     palette = sns.color_palette("tab10", n_colors=len(noise_types))
 
-    # Loop over each noise type and create a difference plot comparing to control
+    # --- LOOP OVER EACH NOISE TYPE AND CREATE DIFFERENCE PLOTS ---
     for i, noise in enumerate(noise_types):
-        if (noise == "SingleQubit"):
+        if noise == "SingleQubit":
             pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_Noisy_*.csv")
         else:
             pattern = os.path.join(csv_folder, f"Iris_QkNN_Run_*_{noise}_*.csv")
@@ -60,6 +62,7 @@ def generate_difference_plots_1200_dpi():
         if not test_files:
             print(f"No CSV files found for noise type: {noise}")
             continue
+
         test_dfs = [pd.read_csv(file) for file in test_files]
         test_df = pd.concat(test_dfs, ignore_index=True)
         test_df["k"] = test_df["k"].astype(int)
@@ -69,30 +72,42 @@ def generate_difference_plots_1200_dpi():
         test_mean = test_stats["mean"].tolist()
 
         # Compute absolute difference between control and test mean accuracies
-        # We assume both control and test have same k-values; if not, take the union and match appropriately.
-        # Here, we'll assume k values are identical.
+        # Assumes both control and test have identical k-values in the same order
         abs_diff = [abs(c - t) for c, t in zip(control_mean, test_mean)]
 
-        # Create a new figure for this difference plot
+        # --- PLOT FIGURE ---
         plt.figure(figsize=(12, 8), dpi=1200)
+        plt.plot(k_control, abs_diff, marker="o", color=palette[i],
+                 linewidth=2, label=f"{control_noise} vs. {noise}")
 
-        # Plot the difference line (with markers) using a distinct color
-        plt.plot(k_control, abs_diff, marker="o", color=palette[i], linewidth=2, label=f"{control_noise} vs. {noise}")
-
-        # Set title and labels
-        plt.title(f"Absolute Difference in Mean Accuracy: {control_noise} vs. {noise}", fontsize=16, fontweight="bold")
+        plt.title(f"Absolute Difference in Mean Accuracy: {control_noise} vs. {noise}",
+                  fontsize=16, fontweight="bold")
         plt.xlabel("k value", fontsize=14)
         plt.ylabel("Absolute Difference in Accuracy", fontsize=14)
         plt.xticks(sorted(set(k_control)), rotation=45)
         plt.legend(title="Comparison", fontsize=12)
         plt.grid(True)
 
-        # Build output filename (replace spaces with underscores)
-        output_filename = os.path.join(csv_folder,
-                                       f"DifferencePlot_{control_noise}_vs_{noise.replace(' ', '_')}_Accuracy_vs_k.png")
+        # --- SAVE FIGURE ---
+        output_filename = os.path.join(
+            csv_folder,
+            f"DifferencePlot_{control_noise}_vs_{noise.replace(' ', '_')}_Accuracy_vs_k.png"
+        )
         plt.savefig(output_filename, bbox_inches="tight")
         plt.close()
         print(f"Difference plot (control vs. {noise}) saved at: {output_filename}")
+
+        # --- NEW: CREATE A TEXT FILE WITH k AND DIFFERENCE VALUES ---
+        txt_filename = os.path.join(
+            csv_folder,
+            f"DifferencePlot_{control_noise}_vs_{noise.replace(' ', '_')}_Accuracy_vs_k.txt"
+        )
+        with open(txt_filename, 'w', encoding='utf-8') as f:
+            f.write(f"Absolute Difference in Mean Accuracy: {control_noise} vs. {noise}\n\n")
+            f.write("k-value\tAbsolute_Difference\n")
+            for k_val, diff_val in zip(k_control, abs_diff):
+                f.write(f"{k_val}\t{diff_val:.6f}\n")  # 6 decimal places for readability
+        print(f"Data file created: {txt_filename}")
 
 
 if __name__ == "__main__":
