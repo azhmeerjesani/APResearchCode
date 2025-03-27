@@ -10,7 +10,7 @@ def generate_violin_plots_1200_dpi():
     Accuracy vs. k-value, and outputs summary statistics for each plot to a text file.
     """
 
-    csv_folder = r"C:\path\to\your\CSV\Outputs"
+    csv_folder = r"C:\Users\azhme\OneDrive - Clear Creek ISD\Files\School\11th Grade\AP Capstone Research\Parts Of Research Paper\APResearchCode\Outputs\CSV Outputs"
 
     noise_types = [
         "SingleQubit",
